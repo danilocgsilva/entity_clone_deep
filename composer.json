@@ -1,0 +1,17 @@
+{
+    "name": "danilocgsilva/entity_clone_deep",
+    "description": "Clones a database entity and all its related entities",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Danilocgsilva\\EntityCloneDeep\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Danilo Silva",
+            "email": "contact@danilocgsilva.me"
+        }
+    ],
+    "require": {}
+}
