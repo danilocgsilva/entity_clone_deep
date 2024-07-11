@@ -13,5 +13,7 @@
             "email": "contact@danilocgsilva.me"
         }
     ],
-    "require": {}
+    "require": {
+        "danilocgsilva/entities_discover": "^2.2"
+    }
 }
