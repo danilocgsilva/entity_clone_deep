@@ -55,8 +55,10 @@ class CloneDeep
 
     public function getIdsByRelatedField(string $idValue, string $tableName, array $tableIdsPairs = [], int $iterationCount = 0): array
     {
-        $initialCountTableIdsPairs = $this->countTableIdsPairs($tableIdsPairs);
+        // /** @var int $initialCountTableIdsPairs */
+        // $initialCountTableIdsPairs = $this->countTableIdsPairs($tableIdsPairs);
 
+        /** @var \Danilocgsilva\EntitiesDiscover\Entity $discoveringEntity */
         $discoveringEntity = (new Entity())
         ->setPdo($this->sourcePdo)
         ->setTable($tableName)
@@ -71,33 +73,48 @@ class CloneDeep
             $discoveringEntity->setDebugMessages($this->logMessages);
         }
 
-        /**
-         * @var \Danilocgsilva\EntitiesDiscover\CountResults
-         */
+        /** @var \Danilocgsilva\EntitiesDiscover\CountResults $fullResults */
         $fullResults = $discoveringEntity->discoverEntitiesOccurrencesByIdentitySync($tableName, $idValue);
         $nonEmptyResults = $fullResults->getSuccessesNotEmpty();
 
         foreach ($nonEmptyResults as $tableLoopName => $count) {
-            $tableId = $this->getTableId($tableLoopName);
 
-            $ids = $this->getIds(
-                $tableId, 
+            $tableIdsPairs[$tableLoopName]['keyName'] = $keyName = $this->getTableId($tableLoopName);
+            $tableIdsPairs[$tableLoopName]['values'] = $this->getIds(
+                $keyName, 
                 $tableLoopName, 
                 $discoveringEntity->getTableIdFieldName(),
                 $idValue
             );
-            $tableIdsPairs[$tableLoopName] = $ids;
         }
 
-        $newCountIdPairs = $this->countTableIdsPairs($tableIdsPairs);
+        // /** @var int $newCountIdPairs */
+        // $newCountIdPairs = $this->countTableIdsPairs($tableIdsPairs);
 
-        print(sprintf("The initial count of table id pairs is %s. After, the count of table id pairs is %s.\n", $initialCountTableIdsPairs, $newCountIdPairs));
-        if ($initialCountTableIdsPairs != $newCountIdPairs) {
-            print(sprintf("After receiving the id value of %s and table name of %s, the initial and final count id is different. So fetching must continue.\n", $idValue, $tableName));
-            $iterationCount++;
-        } else {
-            print(sprintf("After receiving the id value of %s and table name of %s, the initial and final count id is equal. All relations has been fetched!.\n", $idValue, $tableName));
-        }
+        // print(sprintf("The initial count of table id pairs is %s. After, the count of table id pairs is %s.\n", $initialCountTableIdsPairs, $newCountIdPairs));
+        // if ($initialCountTableIdsPairs != $newCountIdPairs) {
+        //     print(
+        //         sprintf(
+        //             "Receiving the id value of %s and table name of %s. "
+        //             . "The initial count is %s. Final count is %s . The initial and final count id is different. "
+        //             . "The current level is %s. So fetching must continue.\n",
+        //             $idValue,
+        //             $tableName,
+        //             $initialCountTableIdsPairs,
+        //             $newCountIdPairs
+        //         )
+        //     );
+        //     print("SHOULD ENTER IN A NEW LOOP!\n");
+        //     $iterationCount++;
+        //     foreach ($tableIdsPairs as $tableName => $ids) {
+        //         foreach ($ids as $id) {
+        //             $this->getIdsByRelatedField((string) $id, $tableName, $tableIdsPairs, $iterationCount);
+        //         }
+        //     }
+        // }
+        // else {
+        //     print(sprintf("After receiving the id value of %s and table name of %s, the initial and final count id is equal. All relations has been fetched!.\n", $idValue, $tableName));
+        // }
 
         return $tableIdsPairs;
     }
@@ -116,9 +133,9 @@ class CloneDeep
         return $this->tableAndItsFields[$tableName][0];
     }
 
-    private function getIds(string $tableId, string $tableName, string $parentTableFieldName, string $parentTableFieldValue)
+    private function getIds(string $fieldIdName, string $tableName, string $parentTableFieldName, string $parentTableFieldValue)
     {
-        $baseQuery = sprintf("SELECT %s FROM %s WHERE %s = :idvalue;", $tableId, $tableName, $parentTableFieldName);
+        $baseQuery = sprintf("SELECT %s FROM %s WHERE %s = :idvalue;", $fieldIdName, $tableName, $parentTableFieldName);
         $preResults = $this->sourcePdo->prepare($baseQuery);
         $preResults->execute([":idvalue" => $parentTableFieldValue]);
         $preResults->setFetchMode(PDO::FETCH_NUM);
@@ -136,5 +153,16 @@ class CloneDeep
             $totalCount += count($ids);
         }
         return $totalCount;
+    }
+
+    private function fillTableIdsPairs($tableLoopName, $tableIdFieldName, $idValue): array
+    {
+        $ids = $this->getIds(
+            $this->getTableId($tableLoopName), 
+            $tableLoopName, 
+            $tableIdFieldName,
+            $idValue
+        );
+        return $ids;
     }
 }
