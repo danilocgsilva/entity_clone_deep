@@ -14,7 +14,7 @@
         }
     ],
     "require": {
-        "danilocgsilva/entities_discover": "^2.2",
+        "danilocgsilva/entities_discover": "^3.0",
         "danilocgsilva/database_discover": "^1.6"
     }
 }
